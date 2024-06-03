@@ -1,0 +1,266 @@
+MCM-TransAID DEFINITIONS AUTOMATIC TAGS ::=
+BEGIN
+
+IMPORTS
+ItsPduHeader, StationType, ReferencePosition, Heading, Speed,
+LongitudinalAcceleration, LateralAcceleration, VerticalAcceleration, YawRate,
+Curvature, CurvatureCalculationMode,DriveDirection, LanePosition,
+SteeringWheelAngle, SpeedValue, LongitudinalAccelerationValue, StationID, TimestampIts
+
+FROM ITS-Container {itu-t(0) identified-organization(4) etsi(0) itsDomain(5)
+wg1(1) ts(102894) cdd(2) version(2)}
+
+BasicContainer, GenerationDeltaTime
+
+FROM CAM-PDU-Descriptions { itu-t (0) identified-organization (4) etsi (0) itsDomain (5) wg1 (1) en (302637) cam (2) version (2) };
+
+
+IntersectionReferenceID ::= SEQUENCE {
+  region  RoadRegulatorID OPTIONAL,
+  id      IntersectionID
+}
+
+RoadSegmentReferenceID ::= SEQUENCE {
+  region  RoadRegulatorID OPTIONAL,
+  id      RoadSegmentID
+}
+
+IntersectionID ::= INTEGER (0..65535)
+
+RestrictionClassID ::= INTEGER (0..255)
+
+RoadRegulatorID ::= INTEGER (0..65535)
+
+RoadSegmentID ::= INTEGER (0..65535)
+
+RoadwayCrownAngle ::= INTEGER (-128..127)
+
+RequestID ::= INTEGER (0..255)
+
+MCM ::= SEQUENCE {
+    header                  ItsPduHeader,
+    maneuverCoordination    ManeuverCoordination
+}
+
+ManeuverCoordination ::= SEQUENCE {
+    generationDeltaTime     GenerationDeltaTime,
+    mcmParameters           McmParameters
+}
+
+McmParameters ::= SEQUENCE {
+    basicContainer          BasicContainer,
+    maneuverContainer       ManeuverContainer
+}
+
+
+ManeuverContainer ::= CHOICE {
+    vehicleManeuver         VehicleManeuver,
+    rsuManeuver             RsuManeuver,
+    ...
+}
+
+VehicleManeuver ::= SEQUENCE {
+    toleratedDistanceAheadCmps      ToleratedDistance,
+    toleratedDistanceBehindCmps     ToleratedDistance,
+    plannedTrajectory               PlannedTrajectory,
+    desiredTrajectory               DesiredTrajectory OPTIONAL,
+    respectedDesiredTrajectoriesList RespectedDesiredTrajectoriesList,
+    triggerTimeOfToC                TriggerTimeOfToC OPTIONAL,
+    targetAutomationLevel           TargetAutomationLevel OPTIONAL,
+    triggerTimeOfMRM                TriggerTimeOfMRM OPTIONAL,
+    heading                         Heading,
+    speed                           Speed,
+    longitudinalAcceleration        LongitudinalAcceleration,
+    lateralAcceleration             LateralAcceleration,
+    verticalAcceleration            VerticalAcceleration,
+    yawRate                         YawRate,
+    curvature                       Curvature,
+    curvatureCalculationMode        CurvatureCalculationMode,
+    driveDirection                  DriveDirection,
+    lanePosition                    LanePosition,
+    steeringWheelAngle              SteeringWheelAngle,
+    adviceResponseList              AdviceResponseList OPTIONAL
+}
+
+ToleratedDistance ::= INTEGER (0..10000)
+
+PlannedTrajectory ::= SEQUENCE SIZE (1..30) OF TrajectoryPoint
+
+DesiredTrajectory ::= SEQUENCE SIZE (1..30) OF TrajectoryPoint
+
+AdvisedTrajectory ::= SEQUENCE SIZE (1..30) OF TrajectoryPoint
+
+TrajectoryPoint ::= SEQUENCE {
+    deltaXCm                        DiffPosition,
+    deltaYCm                        DiffPosition,
+    deltaTimeMs                     DiffTime,
+    absSpeed                        SpeedValue OPTIONAL,
+    longitudinalAcceleration        LongitudinalAccelerationValue OPTIONAL
+}
+
+DiffPosition ::= INTEGER (0..10000)
+
+DiffTime ::= INTEGER (0..65535)
+
+RespectedDesiredTrajectoriesList ::= SEQUENCE SIZE (0..5) OF RespectedDesiredTrajectory
+
+RespectedDesiredTrajectory ::= INTEGER (0..4294967295)
+
+TriggerTimeOfToC ::= SEQUENCE {
+    minute              Minute,
+    millisecond         Millisecond
+}
+
+Minute ::= INTEGER (0..527040)
+
+Millisecond ::= INTEGER (0..65535)
+
+TargetAutomationLevel ::= ENUMERATED {
+    saeLevel0 (0),
+    saeLevel1 (1),
+    saeLevel2 (2),
+    saeLevel3 (3),
+    saeLevel4 (4),
+    saeLevel5 (5),
+    ...
+}
+
+TriggerTimeOfMRM ::= INTEGER (0..65535)
+
+AdviceResponseList ::= SEQUENCE SIZE (0..3) OF AdviceResponse
+
+AdviceResponse ::= SEQUENCE {
+    adviceID            AdviceID,
+    adviceFollowed      AdviceFollowed
+}
+
+AdviceID ::= INTEGER (0..255)
+
+AdviceFollowed ::= BIT STRING {
+    notFollowed(0),
+    followed(1)
+}
+
+RsuManeuver ::= SEQUENCE {
+    intersectionReferenceID     IntersectionReferenceID OPTIONAL,
+    roadSegmentReferenceID      RoadSegmentReferenceID OPTIONAL,
+    vehicleAdviceList           VehicleAdviceList OPTIONAL,
+    issueTime                   TimestampIts OPTIONAL
+}
+
+VehicleAdviceList ::= SEQUENCE SIZE (1..31) OF VehicleAdvice
+
+VehicleAdvice ::= SEQUENCE {
+    targetStationID         TargetStationID,
+    laneAdvice              LaneAdvice OPTIONAL,
+    carFollowingAdvice      CarFollowingAdvice OPTIONAL,
+    tocAdvice               TocAdvice OPTIONAL,
+    trajectoryAdvice        TrajectoryAdvice OPTIONAL,
+    maneuverTypeAdvice      ManeuverTypeAdvice OPTIONAL
+}
+
+TargetStationID ::= StationID
+
+LaneAdvice ::= SEQUENCE {
+    adviceID                AdviceID,
+    laneAdviceReason        LaneAdviceReason,
+    laneChangePosition      LaneChangePosition,
+    laneChangeMoment        LaneChangeMoment,
+    laneChangeSpeed         LaneChangeSpeed OPTIONAL,
+    leadingVehicle          LeadingVehicle OPTIONAL,
+    followingVehicle        FollowingVehicle OPTIONAL,
+    targetLane              LanePosition,
+    triggeringPointOfToC    TriggeringPointOfToC OPTIONAL
+}
+
+CarFollowingAdvice ::= SEQUENCE {
+    adviceID                AdviceID,
+    adviceLaneID            LanePosition,
+    advicePosition          AdvicePosition,
+    desiredBehaviour        DesiredBehaviour
+}
+
+TocAdvice ::= SEQUENCE {
+    adviceID                AdviceID,
+    tocAdviceReason         TocAdviceReason,
+    placeOfStartTransition  PlaceOfStartTransition OPTIONAL,
+    timeOfTriggerTransition TimeOfTriggerTransition OPTIONAL,
+    placeOfEndTransition    PlaceOfEndTransition OPTIONAL
+}
+
+TrajectoryAdvice ::= SEQUENCE {
+    adviceID                AdviceID,
+    advisedTrajectory       AdvisedTrajectory
+}
+
+ManeuverTypeAdvice ::= SEQUENCE {
+    adviceID                AdviceID,
+    maneuverType            ManeuverType
+}
+
+LaneAdviceReason ::= ENUMERATED {
+    reason0 (0),
+    reason1 (1),
+    ...
+}
+
+LaneChangePosition ::= INTEGER (0..10000)
+
+LaneChangeMoment ::= TimeMinuteAndMillisecond
+
+TimeOfTriggerTransition ::= TimeMinuteAndMillisecond
+
+TimeMinuteAndMillisecond ::= SEQUENCE {
+    minute              Minute,
+    millisecond         Millisecond
+}
+
+LaneChangeSpeed ::= SpeedValue
+
+LeadingVehicle ::= StationID
+
+FollowingVehicle ::= StationID
+
+TriggeringPointOfToC ::= INTEGER (0..10000)
+
+AdvicePosition ::= INTEGER (0..10000)
+
+DesiredBehaviour ::= CHOICE {
+    targetGap           TargetGap,
+    targetSpeed         TargetSpeed
+}
+
+TargetGap ::= INTEGER (0..255)
+
+TargetSpeed ::= INTEGER (0..255)
+
+TocAdviceReason ::= ENUMERATED {
+    reason0 (0),
+    reason1 (1),
+    ...
+}
+
+PlaceOfStartTransition ::= INTEGER (0..10000)
+
+PlaceOfEndTransition ::= INTEGER (0..10000)
+
+ManeuverType ::= ENUMERATED {
+    undefined (0),
+	driveStraight (1),
+	turnLeft (2),
+	turnRight (3),
+	uTurn (4),
+	moveBackward (5),
+	overtake (6),
+	accelerate (7),
+	slowdown (8),
+	goToLeftLane (9),
+	goToRightLane (10),
+	getOnHighway (11),
+	exitHighway (12),
+	takeTollingLane (13),
+	...
+}
+
+
+END

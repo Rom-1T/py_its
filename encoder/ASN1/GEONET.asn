@@ -1,0 +1,148 @@
+-- Define the GeonetAddress structure
+Geonet DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+
+-- Import necessary modules if needed
+
+-- Define the structure using the SEQUENCE keyword
+
+GeoNetPacket ::= SEQUENCE {
+    basicHeader BasicHeader,
+    commonHeader CommonHeader,
+    payload GeoNetPayload,
+    ...
+}
+GeoNetPayload ::= CHOICE {
+    geoUniCast GeoUniCast,
+    topologicalBroadcast TopologicalBroadcast,
+    geoBroadCast GeoBroadCast,
+    singleHopeBroadcast SingleHopeBroadcast,
+    beacon Beacon,
+    ...
+}
+
+GeoUniCast ::= SEQUENCE {
+    sequenceNumber INTEGER (0..65535),
+    reserved INTEGER (0..65535),
+    sourcePosition LongPositionVector,
+    destinationPosition ShortPositionVector
+}
+
+TopologicalBroadcast ::= SEQUENCE {
+    sequenceNumber INTEGER (0..65535),
+    reserved INTEGER (0..65535) ,
+    sourcePosition LongPositionVector
+}
+
+GeoBroadCast ::= SEQUENCE {
+    sequenceNumber INTEGER (0..65535),
+    reserved INTEGER (0..65535),
+    sourcePosition LongPositionVector,
+    geoAreaPosLatitude Latitude,
+    geoAreaPosLongitude Longitude,
+    aDistance INTEGER (0..65535),
+    bDistance INTEGER (0..65535),
+    angle INTEGER (0..65535),
+    reserved2 INTEGER (0..65535)
+}
+
+Beacon ::= SEQUENCE {
+    sourcePosition LongPositionVector
+}
+
+SingleHopeBroadcast ::= SEQUENCE {
+    sourcePosition LongPositionVector,
+    mediaDependentData INTEGER(0..4294967295)
+}
+
+BasicHeader ::= SEQUENCE {
+    versionAndNextHeader    VersionAndNextHeader,
+    reserved                INTEGER (0..255),
+    lifeTime LifeTime,
+    remainHopeLimit         INTEGER (0..255)
+}
+
+VersionAndNextHeader ::= SEQUENCE {
+    version        INTEGER (0..15),
+    nextHeader     INTEGER (0..15)
+}
+
+CommonHeader ::= SEQUENCE {
+    nextHeader INTEGER{ any(0), btpA(1), btpB(2), ipv6(3)} (0..15),
+    reserved1 INTEGER (0..15) ,
+    headerType HeaderTypePackage,
+    trafficClass TrafficClass,
+    flags Flag,
+    payloadLength INTEGER (0..65535),
+    maximumHopLimit INTEGER (0..255),
+    reserved2 INTEGER (0..255)
+}
+
+HeaderTypePackage ::= SEQUENCE {
+    type INTEGER{ any(0), beacon(1), geounicast(2), geoanycast(3), geobroadcast(4), tsb(5), ls(6)} (0..15),
+    subType INTEGER (0..15)
+}
+
+TrafficClass ::= SEQUENCE {
+    scf BOOLEAN ,
+    channelOffload BOOLEAN ,
+    id INTEGER (0..63)
+}
+
+Flag ::= SEQUENCE {
+    itsGnIsMobile BOOLEAN,
+    reserved INTEGER (0..127)
+}
+
+
+GeonetAddress ::= SEQUENCE {
+    manual BOOLEAN ,
+    stationType StationType (0..31),
+    reserved1 INTEGER (0..3),
+    reserved2 INTEGER (0..255),
+    llAddr LLAddr
+}
+
+LongPositionVector ::= SEQUENCE {
+    geonetAddress GeonetAddress,
+    timeStamp TimestampIts,
+    latitude Latitude,
+    longitude Longitude,
+    positionAccuracy BOOLEAN,
+    speed Speed,
+    heading Heading
+}
+
+ShortPositionVector ::= SEQUENCE {
+    geonetAddress GeonetAddress,
+    timeStamp TimestampIts,
+    latitude Latitude,
+    longitude Longitude
+}
+
+LifeTime ::= SEQUENCE {
+    multiplier INTEGER (0..63),
+    base INTEGER (0..3)
+}
+
+
+StationType ::= INTEGER {unknown(0), pedestrian(1), cyclist(2), moped(3), motorcycle(4), passengerCar(5), bus(6),
+lightTruck(7), heavyTruck(8), trailer(9), specialVehicles(10), tram(11), roadSideUnit(15)}(0..31)
+
+LLAddr ::= OCTET STRING (SIZE(6))
+
+TimestampIts ::= INTEGER {utcStartOf2004(0), oneMillisecAfterUTCStartOf2004(1)} (0..4294967295)
+
+-- Define a 32-bit signed integer for Latitude
+Latitude ::= INTEGER (-2147483648..2147483647)
+
+-- Define a 32-bit signed integer for Longitude
+Longitude ::= INTEGER (-2147483648..2147483647)
+
+-- Define a 15-bit signed integer for Speed
+Speed ::= INTEGER (-16384..16383)
+
+Heading ::= INTEGER (0..65535)
+
+-- Add any additional definitions if required
+
+END
